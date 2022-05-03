@@ -19,7 +19,7 @@ class NumCounter:
         text = soup.get_text()
         text = text.replace("\n", "")
         text = text.replace('"', "")
-        text = text.translate ({ord(c): " " for c in "!@#$%^&*()[]{};:,./<>?\|`~-=_+\©"""})
+        text = text.translate ({ord(c): " " for c in '!@#$%^&*()[]{};:,./<>?\|`~-=_+\©"'})
         new_text = text
         # for i in range(len(text)-1):
         #   if text[i].islower() and text[i+1].isupper():
@@ -60,19 +60,38 @@ class NumCounter:
             urls.append(f"https://www.gutenberg.org/cache/epub/{i+start_index}/pg{i+start_index}.txt")
         return urls
 
-    def remove_one_counts(self):
-        if os.path.exists("word_frequency.txt"):
-            df = pd.read_csv("word_frequency.txt")
+    # def remove_one_counts(self, filename):
+    #     if os.path.exists(filename):
+    #         df = pd.read_csv(filename)
 
-        for index, row in df.iterrows():
-            if row["counts"] == 1:
-                df.drop(index, inplace=True)
-                continue
+    #     for index, row in df.iterrows():
+    #         if row["counts"] == 1:
+    #             df.drop(index, inplace=True)
         
+    #     os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
+    #     if os.path.exists(filename):
+    #         os.remove(filename)
+    #     df.to_csv(filename)
+    #     return df
+    def remove_one_counts(self, filename):
+        if os.path.exists(filename):
+            df = pd.read_csv(filename)
+
+        df = df.reset_index()
+
+        counts = df["counts"].values.tolist()
+        words = df["words"].values.tolist()
+
+        counts_to_remove = 0
+
+        for i in range(len(counts)):
+            if counts[i] == 1:
+                counts_to_remove += 1
+        counts = counts[-counts_to_remove:]
+        words = words[-counts_to_remove:]
         os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
-        if os.path.exists("word_frequency.txt"):
-            os.remove("word_frequency.txt")
-        df.to_csv("word_frequency.txt")
+        df = self.create_df(words, counts)
+        df.to_csv("word_frequency_order.txt")
         return df
 
     def iterate_through_urls(self, urls, filename):
@@ -90,7 +109,6 @@ class NumCounter:
             text = self.get_all_text(url)
             words, counts = self.add_plain_text_to_counts(text, words, counts)
         df = self.create_df(words, counts)
-        # df = self.remove_one_counts()
         df = df.sort_values(by="counts", ascending=False)
 
         os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
