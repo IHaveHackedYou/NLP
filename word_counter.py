@@ -81,17 +81,20 @@ class NumCounter:
 
         counts = df["counts"].values.tolist()
         words = df["words"].values.tolist()
-
         counts_to_remove = 0
 
         for i in range(len(counts)):
             if counts[i] == 1:
-                counts_to_remove += 1
-        counts = counts[-counts_to_remove:]
-        words = words[-counts_to_remove:]
+                counts_to_remove = i
+                break
+
+        print(counts_to_remove)
+        
+        counts = counts [:counts_to_remove]
+        words = words[:counts_to_remove]
         os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
         df = self.create_df(words, counts)
-        df.to_csv("word_frequency_order.txt")
+        df.to_csv("word_frequency.txt")
         return df
 
     def iterate_through_urls(self, urls, filename):
@@ -116,4 +119,27 @@ class NumCounter:
             os.remove(filename)
         df.to_csv(filename)
         
+        return df
+
+    def normalize_counts(self, filename):
+        # df["counts"] = df["counts"].astype(float)
+        # df["counts"] = df["counts"] / df["counts"].sum()
+        # return df
+        os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
+        if os.path.exists(filename):
+            df = pd.read_csv(filename)
+
+        df = df.reset_index()
+
+        counts = df["counts"].values.tolist()
+        words = df["words"].values.tolist()
+        
+        max_num = counts[0]
+        
+        for i in range(len(counts)):
+            counts[i] = counts[i] / max_num
+
+        os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
+        df = self.create_df(words, counts)
+        df.to_csv("word_frequency_normalized.txt")
         return df
