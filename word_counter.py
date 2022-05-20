@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 import pandas as pd
 import os
+# import re
 
 DIGITS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
@@ -17,9 +18,27 @@ class NumCounter:
     def get_all_text(self, url):
         soup = self.get_soup_by_url(url)
         text = soup.get_text()
+        text = re.sub("[^a-zA ']", '', text)
+        text = re.sub(r"\s+", " ", text)
+        # for i in range(len(text)-1):
+        #   if text[i].islower() and text[i+1].isupper():
+        #     # new_text = new_text + text[i] + " "
+        #     new_text = "".join([new_text, text[i], " "])
+        #   else:
+        #     # new_text = new_text + text[i]
+        #     new_text = "".join([new_text, text[i]])
+        text = text.lower()
+        return text
+
+    def get_all_text_old(self, url):
+        soup = self.get_soup_by_url(url)
+        text = soup.get_text()
         text = text.replace("\n", "")
         text = text.replace('"', "")
+        text = text.replace("“", "")
         text = text.translate ({ord(c): " " for c in '!@#$%^&*()[]{};:,./<>?\|`~-=_+\©"'})
+        # text = re.sub("[^a-zA ']", '', text)
+        # text = re.sub(r"\s+", " ", text)
         new_text = text
         # for i in range(len(text)-1):
         #   if text[i].islower() and text[i+1].isupper():
@@ -39,7 +58,7 @@ class NumCounter:
         text_to_count = text.split()
 
         for word in text_to_count:
-            if len(word) == 1 or any(x in word for x in DIGITS):
+            if len(word) == 1 or word in DIGITS:
                 continue
             if word not in words:
                 new_words.append(word)
@@ -60,19 +79,6 @@ class NumCounter:
             urls.append(f"https://www.gutenberg.org/cache/epub/{i+start_index}/pg{i+start_index}.txt")
         return urls
 
-    # def remove_one_counts(self, filename):
-    #     if os.path.exists(filename):
-    #         df = pd.read_csv(filename)
-
-    #     for index, row in df.iterrows():
-    #         if row["counts"] == 1:
-    #             df.drop(index, inplace=True)
-        
-    #     os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
-    #     if os.path.exists(filename):
-    #         os.remove(filename)
-    #     df.to_csv(filename)
-    #     return df
     def remove_one_counts(self, filename):
         if os.path.exists(filename):
             df = pd.read_csv(filename)
@@ -84,7 +90,7 @@ class NumCounter:
         counts_to_remove = 0
 
         for i in range(len(counts)):
-            if counts[i] == 1:
+            if counts[i] <= 1:
                 counts_to_remove = i
                 break
 
@@ -106,11 +112,21 @@ class NumCounter:
         else:
             words = []
             counts = []
-
+        i = 0
         for url in urls:
+            i+=1
             print(url)
-            text = self.get_all_text(url)
+            text = self.get_all_text_old(url)
             words, counts = self.add_plain_text_to_counts(text, words, counts)
+            if i%50 == 0:
+                df = self.create_df(words, counts)
+                df = df.sort_values(by="counts", ascending=False)
+
+                os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
+                if os.path.exists(filename):
+                    os.remove(filename)
+                df.to_csv(filename)
+
         df = self.create_df(words, counts)
         df = df.sort_values(by="counts", ascending=False)
 
@@ -122,9 +138,6 @@ class NumCounter:
         return df
 
     def normalize_counts(self, filename):
-        # df["counts"] = df["counts"].astype(float)
-        # df["counts"] = df["counts"] / df["counts"].sum()
-        # return df
         os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
         if os.path.exists(filename):
             df = pd.read_csv(filename)
