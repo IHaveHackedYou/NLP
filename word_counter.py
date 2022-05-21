@@ -79,18 +79,18 @@ class NumCounter:
             urls.append(f"https://www.gutenberg.org/cache/epub/{i+start_index}/pg{i+start_index}.txt")
         return urls
 
-    def remove_one_counts(self, filename):
-        if os.path.exists(filename):
-            df = pd.read_csv(filename)
+    def remove_one_counts(self, load_filename, store_filename, counts_to_remove=1):
+        os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
+        if os.path.exists(load_filename):
+            df = pd.read_csv(load_filename)
 
         df = df.reset_index()
 
         counts = df["counts"].values.tolist()
         words = df["words"].values.tolist()
-        counts_to_remove = 0
 
         for i in range(len(counts)):
-            if counts[i] <= 1:
+            if counts[i] <= counts_to_remove:
                 counts_to_remove = i
                 break
 
@@ -100,7 +100,7 @@ class NumCounter:
         words = words[:counts_to_remove]
         os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
         df = self.create_df(words, counts)
-        df.to_csv("word_frequency.txt")
+        df.to_csv(store_filename)
         return df
 
     def iterate_through_urls(self, urls, filename):
