@@ -169,7 +169,7 @@ class NumCounter:
         df.to_csv("word_frequency_normalized.txt")
         return df
 
-    def remove_symbols_from_df(self, load_filename, store_filename, symbol):
+    def remove_symbols_from_df(self, load_filename, store_filename, symbol, begin_end_symbol=None):
         os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
         if os.path.exists(load_filename):
             df = pd.read_csv(load_filename)
@@ -183,7 +183,7 @@ class NumCounter:
         new_counts = []
 
         for i in range(len(counts)):
-            if symbol not in str(words[i]):
+            if str(words[i])[0] != begin_end_symbol and str(words[i])[-1] != begin_end_symbol and symbol not in str(words[i]):
                 new_words.append(words[i])
                 new_counts.append(counts[i])
 
