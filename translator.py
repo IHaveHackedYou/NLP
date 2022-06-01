@@ -43,17 +43,6 @@ def translate_text(text_list, store_file_name):
   for text in text_list:
     i += 1
 
-    # loaded_output_list = []
-    # if os.path.exists(store_file_name):
-    #   df = pd.read_csv(store_file_name)
-    #   loaded_output_list = df["translations"].values.tolist()
-
-    # list_to_store = loaded_output_list + output_list
-    # df = pd.DataFrame(data={"translations": list_to_store})
-    # os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
-    # df.to_csv(store_file_name, index=False)
-    # output_list = []
-
     # Get thie inupt_area 
     input_css = 'div.lmt__inner_textarea_container textarea'
     input_area = driver.find_element_by_css_selector(input_css)
@@ -63,7 +52,7 @@ def translate_text(text_list, store_file_name):
     input_area.send_keys(text)
 
     # Wait for translation to appear on the web page
-    time.sleep(15)
+    time.sleep(11)
 
     # Get copybutton and click on it
     # button = driver.find_element_by_xpath('//*[@id="panelTranslateText"]/div[3]/section[2]/div[3]/div[6]/div/div[3]')
@@ -116,31 +105,12 @@ def refurbish_translations(load_file_name, store_file_name):
     with open(store_file_name, 'w', encoding="utf-8") as f:
       for word in single_word_list:
         f.write("%s" % word)
-    # df = pd.DataFrame(data={"translations": single_word_list})
-    # os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
-    # df.to_csv(store_file_name)
 
 def create_df(words, counts, translations):
   df = pd.DataFrame(data={"counts": counts, "words": words, "translations": translations})
   return df
 
-# counter = word_counter.NumCounter()
-# counter.remove_one_counts(load_filename="word_frequency.txt", store_filename="word_frequency_no_one_counts.txt", counts_to_remove=10)
-
-def remove_every_second_item(list):
-  for i in range(1, len(list), 2):
-    del list[i]
-
-filename = "word_frequency_no_one_counts.txt"
-os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
-if os.path.exists(filename):
-  df = pd.read_csv(filename, encoding="utf-8")
-  words = df["words"].values.tolist()
-  # counts = df["counts"].values.tolist()
-else:
-  print("error")
-
-def batch_list(list, batch_size):
+def create_batch_list(list, batch_size):
   batch_list = []
 
   for i in range(0, len(list), batch_size):
@@ -152,28 +122,41 @@ def batch_list(list, batch_size):
 
   return batch_list
 
-# 27999 + 1
-words = words[28000:]
+def translate():
+  filename = "word_frequency_no_one_counts.txt"
+  os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
+  if os.path.exists(filename):
+    df = pd.read_csv(filename, encoding="utf-8")
+    words = df["words"].values.tolist()
+    # counts = df["counts"].values.tolist()
+  else:
+    print("error")
 
-batches = batch_list(words, 500)
+  # 81499 + 1
+  words = words[81500:]
 
-translations = translate_text(batches, "translationss.txt")
+  batches = create_batch_list(words, 500)
 
-# refurbish_translations("translationss.txt", "translationss_refurbished.txt")
+  translate_text(batches, "translations.txt")
 
-# new_filename = "translated_word_frequency.txt"
-# df = create_df(words, counts, translations)
-# df = df.sort_values(by="counts", ascending=False)
+os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
+df = pd.read_csv("complete.txt")
 
-# os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
-# if os.path.exists(new_filename):
-#    os.remove(new_filename)
-# df.to_csv(new_filename)
+translations = df["translations"].values.tolist()
+words = df["words"].values.tolist()
+counts = df["counts"].values.tolist()
 
-# with open("translationss_refurbished.txt", 'r', encoding="utf-8") as f:
-#   translations = f.readlines()
+new_translations = []
+new_words = []
+new_counts = []
 
-# print(len(words), len(translations))
+for i in range(len(words)):
+  translation = str(translations[i]).lower()
+  word = str(words[i]).lower()
+  if translation != word:
+    new_translations.append(translation)
+    new_words.append(word)
+    new_counts.append(counts[i])
 
-# df = create_df(words, counts, translations)
-# df.to_csv("test.txt")
+df = create_df(new_words, new_counts, new_translations)
+df.to_csv("complete_new.txt", encoding="utf-8")
