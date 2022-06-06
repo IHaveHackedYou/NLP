@@ -139,24 +139,29 @@ def translate():
 
   translate_text(batches, "translations.txt")
 
-os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
-df = pd.read_csv("complete.txt")
+def filter_df():
 
-translations = df["translations"].values.tolist()
-words = df["words"].values.tolist()
-counts = df["counts"].values.tolist()
+  os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
+  df = pd.read_csv("complete.txt")
 
-new_translations = []
-new_words = []
-new_counts = []
+  translations = df["translations"].values.tolist()
+  words = df["words"].values.tolist()
+  counts = df["counts"].values.tolist()
 
-for i in range(len(words)):
-  translation = str(translations[i]).lower()
-  word = str(words[i]).lower()
-  if translation != word:
-    new_translations.append(translation)
-    new_words.append(word)
-    new_counts.append(counts[i])
+  new_translations = []
+  new_words = []
+  new_counts = []
 
-df = create_df(new_words, new_counts, new_translations)
-df.to_csv("complete_new.txt", encoding="utf-8")
+  for i in range(len(words)):
+    translation = str(translations[i]).lower()
+    word = str(words[i]).lower()
+    if translation != word:
+      new_translations.append(translation)
+      new_words.append(word)
+      new_counts.append(counts[i])
+
+  df = create_df(new_words, new_counts, new_translations)
+  df.to_csv("complete_new.txt", encoding="utf-8")
+
+counter = word_counter.NumCounter()
+counter.normalize_counts("complete_new.txt", "complete_new.txt")

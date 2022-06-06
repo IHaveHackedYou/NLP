@@ -68,8 +68,16 @@ class NumCounter:
         return new_words, new_counts
 
     # create pandas dataframe
+    # def create_df(self, words, counts):
+    #     df = pd.DataFrame(data={"counts": counts, "words": words})
+    #     return df
+
     def create_df(self, words, counts):
         df = pd.DataFrame(data={"counts": counts, "words": words})
+        return df
+
+    def create_df_with_trans(self, words, counts, translations):
+        df = pd.DataFrame(data={"counts": counts, "words": words, "translations": translations})
         return df
 
     def create_gutenberg_urls(self, num_books, start_index):
@@ -149,15 +157,16 @@ class NumCounter:
         return df
 
     # normalize counts to numbers between 0 and 1
-    def normalize_counts(self, filename):
+    def normalize_counts(self, load_filename, save_filename):
         os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
-        if os.path.exists(filename):
-            df = pd.read_csv(filename)
+        if os.path.exists(load_filename):
+            df = pd.read_csv(load_filename)
 
         df = df.reset_index()
 
         counts = df["counts"].values.tolist()
         words = df["words"].values.tolist()
+        translations = df["translations"].values.tolist()
         
         max_num = counts[0]
         
@@ -165,8 +174,8 @@ class NumCounter:
             counts[i] = counts[i] / max_num
 
         os.chdir("D:/Users/flopp/Documents/VSCode/Python/NLP")
-        df = self.create_df(words, counts)
-        df.to_csv("word_frequency_normalized.txt")
+        df = self.create_df(words, counts, translations)
+        df.to_csv(save_filename)
         return df
 
     def remove_symbols_from_df(self, load_filename, store_filename, symbol, begin_end_symbol=None):
