@@ -1,9 +1,103 @@
-import word_counter
+from venv import create
+from selenium import webdriver
+import time
+import clipboard
+import os
 import pandas as pd
+import re
 
-counter = word_counter.NumCounter()
-txt = counter.get_all_text_old("https://www.gutenberg.org/files/1342/1342-0.txt")
+def create_df(words, counts):
+  df = pd.DataFrame(data={"counts": counts, "words": words})
+  return df
 
-f = open("extern_list.txt", "r")
-listItems = f.read().splitlines()
-print(len(listItems))
+def load_list(file_name):
+  f = open(file_name, "r")
+  content = f.read()
+  f.close()
+
+  words = []
+  counts = []
+
+  lines = content.split("\n")[1:]
+  for line in lines:
+    line = line.replace("  ", " ")
+    line = line.replace("  ", " ")
+    line = line.replace("  ", " ")
+    line = line.replace("  ", " ")
+    line = line.replace("  ", " ")
+    line = line.replace("  ", " ")
+    line = line.replace("  ", " ")
+
+    line = line.split(" ")
+    words.append(line[1].lower())
+    counts.append(line[3][:-1].lower())
+
+  return words, counts
+
+def load_list_pd(file_name):
+  df = pd.read_csv(file_name)
+  words = df["words"]
+  counts = df["counts"]
+  return words, counts
+
+def store_list_pd(df, file_name):
+  df.to_csv(file_name)
+
+def selenium(words_to_translate, batch_size, file_name):
+  PATH = "C:\Program Files (x86)\chromedriver.exe"
+  driver = webdriver.Chrome(PATH)
+  url = "https://translate.google.com/?sl=en&tl=de&op=translate"
+  driver.get(url)
+  translations = []
+  i = 0
+  for word_to_translate in words_to_translate:
+    i+=1
+    if(i%batch_size == 0):
+      f = open(file_name, "r")
+      content = f.read()
+      f.close()
+      for synonym_trans in translations:
+        new_line = ""
+        for single_trans in synonym_trans:
+          single_trans = re.sub('[^a-zA-Z0-9\u00E4\u00F6\u00FC\u00C4\u00D6\u00DC\u00df\n]', '', single_trans)
+          new_line += single_trans + ","
+        content += new_line + "\n"
+      f = open(file_name, "w")
+      f.write(content)
+      f.close()
+      translations = []
+    translations.append(get_trans_with_synonyms(driver, word_to_translate))
+
+def get_trans_with_synonyms(driver, word):
+  translations = []
+  input_area = driver.find_element_by_class_name("er8xn")
+  input_area.clear()
+  try:
+    input_area.send_keys(word)
+    time.sleep(3)
+    try:
+      translation_text = driver.find_element_by_class_name("Q4iAWc").text
+      translations.append(translation_text.strip())
+    except:
+      elements = driver.find_elements_by_class_name("VIiyi")
+      for element in elements:
+        translations.append(element.text.strip())
+    try:
+      synonym_translations = driver.find_elements_by_class_name("kgnlhe")
+      for synonym in synonym_translations:
+        try:
+          if(synonym.text.strip() != ""):
+            translations.append(synonym.text.strip())
+        except:
+          print("error with synonym adding")
+    except:
+      print("error with synonym getting")
+  except:
+    translations.append("$$_ERROR_$$")
+  return translations
+
+# selenium("drive")
+words, counts = load_list_pd("word_list_extern_pd.txt")
+df = create_df(words, counts)
+words = words[40184:]
+selenium(words, 100, "translations.txt")
