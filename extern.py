@@ -1,10 +1,12 @@
+from posixpath import split
 from venv import create
 from selenium import webdriver
 import time
-import clipboard
+import threading
 import os
 import pandas as pd
 import re
+import logging
 
 def create_df(words, counts):
   df = pd.DataFrame(data={"counts": counts, "words": words})
@@ -53,9 +55,14 @@ def selenium(words_to_translate, batch_size, file_name):
   for word_to_translate in words_to_translate:
     i+=1
     if(i%batch_size == 0):
-      f = open(file_name, "r")
-      content = f.read()
-      f.close()
+      try:
+        f = open(file_name, "r")
+        content = f.read()
+        f.close()
+      except:
+        f = open(file_name, "w")
+        content = ""
+        f.close()
       for synonym_trans in translations:
         new_line = ""
         for single_trans in synonym_trans:
@@ -96,8 +103,48 @@ def get_trans_with_synonyms(driver, word):
     translations.append("$$_ERROR_$$")
   return translations
 
+def chunk_list(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+  
 # selenium("drive")
 words, counts = load_list_pd("word_list_extern_pd.txt")
 df = create_df(words, counts)
-words = words[40184:]
-selenium(words, 100, "translations.txt")
+words = words[65679:85679]
+# selenium(words, 100, "translations_multi_0.txt")
+
+chunks = []
+
+chunk_size = 4000
+
+for i in list(chunk_list(words, chunk_size)):
+  chunks.append(list(i))
+
+num_chunks = len(chunks)
+
+if __name__ == "__main__":
+  format = "%(asctime)s: %(message)s"
+
+  logging.basicConfig(format=format, level=logging.INFO,
+                      datefmt="%H:%M:%S")
+
+
+  logging.info("Main    : before creating thread")
+
+  threads = []
+  for i in range(num_chunks):
+    threads.append(threading.Thread(target=selenium, args=(chunks[i], 100, f"translation_multi_{i}.txt")))
+
+  logging.info("Main    : before running thread")
+
+
+  for i in range(len(threads)):
+    threads[i].start()
+  logging.info("Main    : wait for the thread to finish")
+
+  for i in range(len(threads)):
+      threads[i].join()
+  # x.join()
+
+  logging.info("Main    : all done")
