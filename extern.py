@@ -111,7 +111,7 @@ def chunk_list(lst, n):
 # selenium("drive")
 words, counts = load_list_pd("word_list_extern_pd.txt")
 df = create_df(words, counts)
-words = words[95678:125678]
+words = words[125677:155677]
 # selenium(words, 100, "translations_multi_0.txt")
 
 chunks = []
