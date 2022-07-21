@@ -36,6 +36,15 @@ def load_list(file_name):
 
   return words, counts
 
+def load_translation_list(file_name):
+  f = open(file_name, "r")
+  content = f.read()
+  f.close()
+  lines = content.split("\n")
+
+  df = pd.DataFrame(data={"trans": lines})
+  return df
+
 def load_list_pd(file_name):
   df = pd.read_csv(file_name)
   words = df["words"]
@@ -108,43 +117,126 @@ def chunk_list(lst, n):
     for i in range(0, len(lst), n):
         yield lst[i:i + n]
   
-# selenium("drive")
-words, counts = load_list_pd("word_list_extern_pd.txt")
-df = create_df(words, counts)
-words = words[192334:193334]
-# selenium(words, 100, "translations_multi_0.txt")
+def multithreading():
+  # selenium("drive")
+  words, counts = load_list_pd("word_list_extern_pd.txt")
+  df = create_df(words, counts)
+  words = words[192334:193334]
+  # selenium(words, 100, "translations_multi_0.txt")
 
-chunks = []
+  chunks = []
 
-chunk_size = 500
+  chunk_size = 500
 
-for i in list(chunk_list(words, chunk_size)):
-  chunks.append(list(i))
+  for i in list(chunk_list(words, chunk_size)):
+    chunks.append(list(i))
+  num_chunks = len(chunks)
 
-num_chunks = len(chunks)
+  if __name__ == "__main__":
+    format = "%(asctime)s: %(message)s"
 
-if __name__ == "__main__":
-  format = "%(asctime)s: %(message)s"
-
-  logging.basicConfig(format=format, level=logging.INFO,
-                      datefmt="%H:%M:%S")
-
-
-  logging.info("Main    : before creating thread")
-
-  threads = []
-  for i in range(num_chunks):
-    threads.append(threading.Thread(target=selenium, args=(chunks[i], 100, f"translation_multi_{i}.txt")))
-
-  logging.info("Main    : before running thread")
+    logging.basicConfig(format=format, level=logging.INFO,
+                        datefmt="%H:%M:%S")
 
 
-  for i in range(len(threads)):
-    threads[i].start()
-  logging.info("Main    : wait for the thread to finish")
+    logging.info("Main    : before creating thread")
 
-  for i in range(len(threads)):
-      threads[i].join()
-  # x.join()
+    threads = []
+    for i in range(num_chunks):
+      threads.append(threading.Thread(target=selenium, args=(chunks[i], 100, f"translation_multi_{i}.txt")))
 
-  logging.info("Main    : all done")
+    logging.info("Main    : before running thread")
+
+
+    for i in range(len(threads)):
+      threads[i].start()
+    logging.info("Main    : wait for the thread to finish")
+
+    for i in range(len(threads)):
+        threads[i].join()
+    # x.join()
+
+    logging.info("Main    : all done")
+
+df = pd.read_csv("testest.csv")
+
+# df = load_translation_list("translations.txt")
+# df_dict = df.to_dict()["trans"]
+# count = 0
+
+# words, counts = load_list_pd("word_list_extern_pd.txt")
+
+# words = words[:150001]
+# counts = counts[:150001]
+# df = pd.DataFrame(data={"counts": counts, "words": words, "trans": trans})
+# for key in df_dict:
+#   line = df_dict[key]
+#   try:
+#     if line == df_dict[key+1] or str(line) == "":
+#       print(df_dict[key+1] + "  " + words[i] + "  " + df_dict[key])
+#       df_dict[key+1] = get_trans_with_synonyms(word=words[i+1], driver=driver)
+#   except:
+#     print("error")
+#   if i == 30:
+#     df = pd.DataFrame(data={"trans": df_dict.values}, index=[0])
+#     df.to_csv("test_0.csv")
+
+#   i+=1
+
+# num = len(df["trans"])
+# for i in range(num):
+#   if i == 0:
+#     i = 1
+  
+#   line = df["trans"][num-i]
+#   if line == df["trans"][num-i-1] or line.strip() == "":
+#     df["trans"][num-i] = get_trans_with_synonyms(word=words[num-i], driver=driver)
+#     df["trans"][num-i+1] = get_trans_with_synonyms(word=words[num-i+1], driver=driver)
+#     df["trans"][num-i+2] = get_trans_with_synonyms(word=words[num-i+2], driver=driver)
+#     df["trans"][num-i+3] = get_trans_with_synonyms(word=words[num-i+3], driver=driver)
+
+# df.to_csv("test_0001.csv")
+
+# # new_df = pd.DataFrame(data={"counts": counts, "words": words, "trans": trans})
+# # new_df = new_df[:200675]
+# new_df = df
+# i=0
+
+translations = []
+words = []
+counts = []
+
+for i in range(len(df)):
+  trans = df["trans"][i]
+  word = df["words"][i]
+  trans_list = trans.split(",")
+  trans_list = trans_list[:-1]
+  for trans_word in trans_list:
+    if str(trans_word).lower() == str(word).lower():
+      trans_list.remove(trans_word)
+
+  if len(trans_list) != 0 and trans_list[0] != "":
+    translations.append(trans_list)
+    words.append(word)
+    counts.append(df["counts"][i])
+  
+  # trans = trans.replace("'", "")
+  # trans = trans.replace('"', "")
+  # word = str(new_df["words"][i]).lower()
+  # trans_list.append(word)
+  # for trans_word in trans_list:
+  #   trans_word = trans_word.replace(" ", "")
+  #   if trans_word.strip() == "":
+  #     trans_list.remove(trans_word)
+  # seen = set()
+  # trans_list = [x for x in trans_list if x not in seen and not seen.add(x)]    
+  # trans_list = [x for x in trans_list if x]
+  # if word in trans_list:
+  #   trans_list.remove(word)
+  # print(trans_list)
+  # if trans_list == []:
+  #   new_df[i].drop()  
+
+new_df = pd.DataFrame(data={"counts": counts, "words": words, "trans": translations})
+# print(new_df)
+new_df.to_csv("new_df_01.csv")
