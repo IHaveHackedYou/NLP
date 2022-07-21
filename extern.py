@@ -237,6 +237,14 @@ for i in range(len(df)):
   # if trans_list == []:
   #   new_df[i].drop()  
 
+f = open("finished.txt", "w")
+for i in range(len(translations)):
+  trans_string = ""
+  for trans_word in translations[i]:
+    trans_string += trans_word + ","
+  trans_string = trans_string[:-1]
+  f.write(str(str(i) + "," + str(counts[i]) + "," + str(words[i]) + "," + trans_string + "\n"))
+
 new_df = pd.DataFrame(data={"counts": counts, "words": words, "trans": translations})
 # print(new_df)
 new_df.to_csv("new_df_01.csv")
