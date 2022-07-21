@@ -81,7 +81,7 @@ def get_trans_with_synonyms(driver, word):
   input_area.clear()
   try:
     input_area.send_keys(word)
-    time.sleep(2)
+    time.sleep(3)
     try:
       translation_text = driver.find_element_by_class_name("Q4iAWc").text
       translations.append(translation_text.strip())
@@ -111,12 +111,12 @@ def chunk_list(lst, n):
 # selenium("drive")
 words, counts = load_list_pd("word_list_extern_pd.txt")
 df = create_df(words, counts)
-words = words[125677:155677]
+words = words[192334:193334]
 # selenium(words, 100, "translations_multi_0.txt")
 
 chunks = []
 
-chunk_size = 5000
+chunk_size = 500
 
 for i in list(chunk_list(words, chunk_size)):
   chunks.append(list(i))
