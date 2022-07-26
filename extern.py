@@ -211,6 +211,9 @@ for i in range(len(df)):
   word = df["words"][i]
   trans_list = trans.split(",")
   trans_list = trans_list[:-1]
+  seen = set()
+  trans_list = [x for x in trans_list if x not in seen and not seen.add(x)]    
+  trans_list = [x for x in trans_list if x]
   for trans_word in trans_list:
     if str(trans_word).lower() == str(word).lower():
       trans_list.remove(trans_word)
@@ -228,16 +231,13 @@ for i in range(len(df)):
   #   trans_word = trans_word.replace(" ", "")
   #   if trans_word.strip() == "":
   #     trans_list.remove(trans_word)
-  # seen = set()
-  # trans_list = [x for x in trans_list if x not in seen and not seen.add(x)]    
-  # trans_list = [x for x in trans_list if x]
   # if word in trans_list:
   #   trans_list.remove(word)
   # print(trans_list)
   # if trans_list == []:
   #   new_df[i].drop()  
 
-f = open("finished.txt", "w")
+f = open("finished_2.txt", "w")
 for i in range(len(translations)):
   trans_string = ""
   for trans_word in translations[i]:
